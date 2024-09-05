@@ -1,0 +1,47 @@
+---
+- name: SoftWare Installation on Single Server
+  hosts: application_server
+  #become: true
+  #become_method: runas
+  #become_user: Administrator
+  tasks:
+    - name: JRE path creating under C:\
+      win_file:
+        path: "C:\\JRE"
+        state: directory
+    - name: Download java 8 for windwows
+      win_get_url:
+        url: https://builds.openlogic.com/downloadJDK/openlogic-openjdk-jre/8u332-b09/openlogic-openjdk-jre-8u332-b09-windows-x64.zip
+        dest: "{{ ansible_env.USERPROFILE }}"
+    - name: Extract the zip file
+      win_unzip:
+        src: "{{ ansible_env.USERPROFILE }}\\openlogic-openjdk-jre-8u332-b09-windows-x64.zip"
+        dest: "{{ ansible_env.USERPROFILE }}"
+        delete_archive: true
+    - name: Move to C drive
+      win_copy:
+        src: "{{ ansible_env.USERPROFILE }}\\openlogic-openjdk-jre-8u332-b09-windows-64\\"
+        dest: "C:\\JRE"
+        remote_src: true
+    - name: Set JRE_HOME environment variable
+      win_environment:
+        name: JRE_HOME
+        state: present
+        level: machine
+        value: "C:\\JRE"
+    - name: Set JRE_PATH environment variable
+      win_environment:
+        name: JRE_PATH
+        state: present
+        level: machine
+        value: "C:\\JRE\\bin"
+    - name: Set ENV PATH variables for JRE
+      win_path:
+        elements: "C:\\JRE\\bin"
+        scope: machine
+        state: present
+    - name: Remove the folder
+      win_file:
+        path: "{{ ansible_env.USERPROFILE }}\\openlogic-openjdk-jre-8u332-b09-windows-64"
+        state: absent
+...
